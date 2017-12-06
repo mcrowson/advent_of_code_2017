@@ -21,6 +21,8 @@ print(total)
 
 def loop_test(line):
     candidates = []
+
+
     ln_len = len(lines)
     for x in range(ln_len):
         for i in range(ln_len):
