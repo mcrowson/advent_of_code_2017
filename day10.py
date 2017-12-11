@@ -52,7 +52,6 @@ ascii_inst = [ord(s) for s in data] + [17, 31, 73, 47, 23]
 p2 = scrable_to_instructions(input_lst, ascii_inst, deep=64)
 
 # Make the Hash
-dense_hash = []
 blocked_list = array_split(p2, 16)
 dense_hashes = [reduce(operator.xor, c, 0) for c in blocked_list]
 sparse_hash = ''.join([hex(h)[2:].zfill(2) for h in dense_hashes])
