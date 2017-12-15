@@ -1,9 +1,11 @@
-from aocd import data
+from aocd import get_data
 import operator
 from functools import reduce
 from numpy import array_split
 
-def scrable_to_instructions(input_lst, instructions, skip=0, current_index=0, deep=1):
+data = get_data(year=2017, day=10)
+
+def knot_to_inst(instructions, input_lst=None, skip=0, current_index=0, deep=1):
     """
     input_lst: The list to be scrabled
     instructions: The scrable in instructions
@@ -11,6 +13,9 @@ def scrable_to_instructions(input_lst, instructions, skip=0, current_index=0, de
     current_index: Current index for instruction
     deep: How many times to perform scramble
     """
+    if not input_lst:
+        input_lst = list(range(256))
+
     for inst in instructions:
         firstp = input_lst[:current_index]
 
@@ -37,22 +42,32 @@ def scrable_to_instructions(input_lst, instructions, skip=0, current_index=0, de
         skip += 1
     deep -= 1
     if deep:
-        return scrable_to_instructions(input_lst, instructions, skip, current_index, deep)
+        return knot_to_inst(instructions, input_lst, skip, current_index, deep)
     return input_lst
 
 
-instructions = [int(i) for i in data.split(',')]
-input_lst = list(range(256))
+def sparse_hash(scrambled):
+    # Takes a scrambled knot and makes a hash
+    blocked_list = array_split(scrambled, 16)
+    dense_hashes = [reduce(operator.xor, c, 0) for c in blocked_list]
+    sparse_hash = ''.join([hex(h)[2:].zfill(2) for h in dense_hashes])
+    return sparse_hash
 
-p1 = scrable_to_instructions(input_lst, instructions)
-print("P1: {}".format(p1[0] * p1[1]))
+if __name__ == "__main__":
+    instructions = [int(i) for i in data.split(',')]
+    p1 = knot_to_inst(instructions)
+    print("P1: {}".format(p1[0] * p1[1]))
 
+    ascii_inst = [ord(s) for s in data]
+    salt = [17, 31, 73, 47, 23]
+    p2 = knot_to_inst(ascii_inst + salt, deep=64)
+    print("P2: {}".format(sparse_hash(p2)))
 
-ascii_inst = [ord(s) for s in data] + [17, 31, 73, 47, 23]
-p2 = scrable_to_instructions(input_lst, ascii_inst, deep=64)
-
-# Make the Hash
-blocked_list = array_split(p2, 16)
-dense_hashes = [reduce(operator.xor, c, 0) for c in blocked_list]
-sparse_hash = ''.join([hex(h)[2:].zfill(2) for h in dense_hashes])
-print("P2: {}".format(sparse_hash))
+    inst = [ord(s) for s in 'AoC 2017'] + [17, 31, 73, 47, 23]
+    aoc = sparse_hash(knot_to_inst(inst, deep=64))
+    assert('33efeb34ea91902bb2f59c9920caa6cd' == aoc)
+    print("AoC 2017: {}".format(aoc))
+    empty_inst = [17, 31, 73, 47, 23]
+    empty = sparse_hash(knot_to_inst(empty_inst, deep=64))
+    print("Empty String: {}".format(empty))
+    assert('a2582a3a0e66e6e86e3812dcb672a272' == empty)

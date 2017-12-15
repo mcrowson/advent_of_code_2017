@@ -84,4 +84,4 @@ program_details[lightest_name]['children'].index(min())
 # Subtract six
 
 
-print(weight_counts)
+print(weight_counts
